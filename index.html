@@ -95,10 +95,12 @@ padding:14px;color:white;font-weight:600;border-radius:12px 12px 0 0;
 
 /* SEARCH BAR ABOVE LEFT PANEL ONLY */
 .search {
-    margin-bottom:15px;       /* Space below search bar */
-    width:390px;              /* Match left panel width */
-    max-width:100%;       
-    margin-left: 1250px;    /* Prevent overflow on small screens */
+    margin-bottom: 15px;
+    width: 390px;
+    max-width: 100%;
+
+    display: flex;
+    justify-content: flex-end; /* push to right */
 }
 /* Add search icon inside input */
 .search input {
