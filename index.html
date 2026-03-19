@@ -52,15 +52,16 @@ max-width:900px;
 .stat-card{
 flex:1;
 background:white;
-padding:15px;
-border-radius:12px;
-box-shadow:0 6px 18px rgba(0,0,0,0.08);
+padding:20px; /* from 15 → 20 (more space inside) */
+border-radius:14px; /* smoother look */
+box-shadow:0 8px 22px rgba(0,0,0,0.1); /* slightly stronger shadow */
 text-align:center;
 cursor:pointer;
 transition:0.2s;
-margin: 10px;
-min-width:200px;
-max-width:250px;
+margin:10px;
+
+min-width:220px; /* from 200 → 220 */
+max-width:280px; /* from 250 → 280 */
 }
 .stat-card:hover{transform:translateY(-3px);}
 .stat-card.active{outline:3px solid #0d6efd;}
