@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>ICT Inventory Tracker | DepEd Camiguin</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
@@ -36,19 +36,18 @@ gap:20px;
 flex-wrap:wrap;
 }
 
-/* LEFT SIDE: CHART + STATS */
 .left-panel{
-flex:1;
-min-width:320px;
-max-width:400px;
+width:100%;
 display:flex;
-flex-direction:column;
-gap:20px;
-}
-.stats{
+justify-content:center;
+}.stats{
 display:flex;
 gap:20px;
+justify-content:center;
+align-items:center;
 flex-wrap:wrap;
+width:100%;
+max-width:900px;
 }
 .stat-card{
 flex:1;
@@ -57,7 +56,14 @@ padding:15px;
 border-radius:12px;
 box-shadow:0 6px 18px rgba(0,0,0,0.08);
 text-align:center;
+cursor:pointer;
+transition:0.2s;
+margin: 10px;
+min-width:200px;
+max-width:250px;
 }
+.stat-card:hover{transform:translateY(-3px);}
+.stat-card.active{outline:3px solid #0d6efd;}
 .stat-card h2{margin-bottom:5px;color:#333;font-size:16px;}
 .stat-card p{font-size:24px;font-weight:600;margin:0;}
 #chartContainer{background:white;padding:20px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.08);}
@@ -92,27 +98,46 @@ padding:14px;color:white;font-weight:600;border-radius:12px 12px 0 0;
 .pagination{display:flex;justify-content:center;gap:6px;padding:10px;}
 .page-btn{padding:6px 10px;border:none;border-radius:6px;background:#e4ecff;cursor:pointer;}
 .page-btn.active{background:#0d6efd;color:white;}
-
-/* SEARCH BAR ABOVE LEFT PANEL ONLY */
-.search {
-    margin-bottom: 15px;
-    width: 390px;
-    max-width: 100%;
-
-    display: flex;
-    justify-content: flex-end; /* push to right */
-}
-/* Add search icon inside input */
-.search input {
+/* SEARCH ABOVE COLUMNS (LEFT SIDE) */
+.search-wrapper{
     width:100%;
-    padding:10px 14px 10px 40px; /* left padding for icon */
+    display:flex;
+    justify-content:flex-start; /* LEFT SIDE */
+    margin-bottom:1px;
+    margin-top: 20px;
+    margin-left: 3px;
+}
+
+.search{
+    width:320px;
+}
+
+.search input{
+    width:100%;
+    padding:10px 14px 10px 40px;
     border-radius:8px;
     border:1px solid #ccc;
     font-size:16px;
-    background-image: url('data:image/svg+xml;utf8,<svg fill="%23999" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20" height="20"><path d="M21 20l-5.6-5.6a7 7 0 10-1.4 1.4L20 21zM10 16a6 6 0 110-12 6 6 0 010 12z"/></svg>');
-    background-position: 10px center; /* position inside input */
-    background-repeat: no-repeat;
-    background-size: 20px 20px;
+
+    background-image:url('data:image/svg+xml;utf8,<svg fill="%23999" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="20"><path d="M21 20l-5.6-5.6a7 7 0 10-1.4 1.4L20 21zM10 16a6 6 0 110-12 6 6 0 010 12z"/></svg>');
+    background-position:10px center;
+    background-repeat:no-repeat;
+}
+
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    font-size: 11px;
+    border-radius: 6px;
+    margin-left: 6px;
+    font-weight: 600;
+    vertical-align: middle;
+}
+
+/* Pending badge style */
+.badge-pending {
+    background: #f39c12;
+    color: white;
 }
 </style>
 </head>
@@ -132,22 +157,38 @@ Download the latest ICT Inventory Template:
 ICT Equipment Inventory Template February 16, 2026 v.1.15
 </a>
 </div>
-<div class="search">
-<input type="text" placeholder="Search school..." id="searchInput" onkeyup="searchSchool()">
-</div>
+
 <!-- MAIN WRAPPER -->
 <div class="main-wrapper">
-<!-- SEARCH -->
 
 <!-- LEFT PANEL -->
 <div class="left-panel">
 <div class="stats">
-<div class="stat-card uploaded"><h2>Submitted</h2><p id="uploadedStat">0</p></div>
-<div class="stat-card validated"><h2>Validated</h2><p id="validatedStat">0</p></div>
-<div class="stat-card none"><h2>No Submission</h2><p id="noneStat">0</p></div>
+<div class="stat-card uploaded" onclick="filterByCard('uploaded')">
+    <h2>Submitted</h2>
+    <p id="uploadedStat">0</p>
 </div>
-<div id="chartContainer"><canvas id="statusChart"></canvas></div>
+
+<div class="stat-card validated" onclick="filterByCard('validated')">
+    <h2>Validated</h2>
+    <p id="validatedStat">0</p>
 </div>
+
+<div class="stat-card none" onclick="filterByCard('none')">
+    <h2>No Submission</h2>
+    <p id="noneStat">0</p>
+</div>
+</div>
+
+</div>
+
+<!-- SEARCH ABOVE COLUMNS -->
+<div class="search-wrapper">
+    <div class="search">
+        <input type="text" placeholder="Search school..." onkeyup="searchSchool()" id="searchInput">
+    </div>
+</div>
+
 
 <!-- RIGHT PANEL: SCHOOL LISTS -->
 <div class="right-panel">
@@ -270,7 +311,22 @@ function renderCategory(status,listId,pageId,countId,page=1){
     let pageData=data.slice(start,end);
     let container=document.getElementById(listId);
     container.innerHTML="";
-    pageData.forEach(s=>{container.innerHTML+=`<div class="school">${s.name}</div>`;});
+  pageData.forEach(s=>{
+    let name = s.name;
+
+    // ONLY apply badge if category is VALIDATED
+    if(status === "validated" && name.includes("Pending for review")){
+        name = name.replace(
+            "(Pending for review)",
+            `<span class="badge badge-pending">⏳Pending for review</span>`
+        );
+    } else {
+        // remove text if it's not validated (so it won’t appear in Submitted)
+        name = name.replace("(Pending for review)", "");
+    }
+
+    container.innerHTML += `<div class="school">${name}</div>`;
+});
     renderPagination(data.length,page,pageId,(p)=>renderCategory(status,listId,pageId,countId,p));
 }
 
@@ -301,24 +357,6 @@ function initRender(){
     renderChart();
 }
 
-function renderChart(){
-    const ctx=document.getElementById('statusChart').getContext('2d');
-    const uploadedCount = schools.filter(s=>s.status==="uploaded"||s.status==="validated").length;
-    const validatedCount = schools.filter(s=>s.status==="validated").length;
-    const noneCount = schools.filter(s=>s.status==="none").length;
-    new Chart(ctx,{
-        type:'pie',
-        data:{
-            labels:['Submitted','Validated','No Submission'],
-            datasets:[{data:[uploadedCount,validatedCount,noneCount],
-            backgroundColor:['#3498db','#2ecc71','#e74c3c'],borderWidth:1}]
-        },
-        options:{
-            responsive:true,
-            plugins:{legend:{position:'bottom',labels:{font:{size:14}}}}
-        }
-    });
-}
 
 initRender();
 </script>
